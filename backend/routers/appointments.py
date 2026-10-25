@@ -653,67 +653,8 @@ async def reject_appointment_request(
         db.rollback()
         print(f"Error rejecting appointment {appointment_id}: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to reject appointment.")
-    
-    #test comment 123
 
-    #add new endpoint
 
-@router.get("/upcoming-confirmed", response_model=Optional[AppointmentRequestDetails]) # Return one or none
-async def get_my_next_confirmed_appointment(
-    db: db_dependency,
-    current_user: Annotated[User, Depends(get_current_active_user)]
-):
-    """
-    Fetches the next upcoming confirmed appointment for the logged-in user
-    (either as patient or doctor).
-    """
-    
-    now_date = datetime.utcnow().date() # Use a distinct variable name
-
-    # --- MODIFIED QUERY with JOIN ---
-    query = db.query(Appointment).join(Appointment.time_slot).filter( # Join Appointment to TimeSlot
-        Appointment.status == AppointmentStatus.CONFIRMED,
-        Appointment.appointment_date >= now_date
-    )
-
-    # Filter based on user role
-    if current_user.role == UserRole.patient:
-        query = query.filter(Appointment.patient_id == current_user.id)
-    elif current_user.role == UserRole.doctor:
-        query = query.filter(Appointment.doctor_id == current_user.id)
-    else:
-        return None # Should not happen
-
-    # Correct ORDER BY using the joined table
-    upcoming_appointment = query.order_by(
-        Appointment.appointment_date.asc(),
-        TimeSlot.start_time.asc() # <<< CORRECTED: Order by TimeSlot.start_time directly
-    ).first()
-    # --- END MODIFIED QUERY ---
-
-    if not upcoming_appointment:
-        print(f"No upcoming confirmed appointments found for user {current_user.id}")
-        return None
-
-    # Prepare response data (should be okay now)
-    if upcoming_appointment.time_slot and upcoming_appointment.patient and upcoming_appointment.doctor:
-         # ... (rest of response preparation logic - make sure model_validate is correct for Pydantic v2) ...
-          response_data = AppointmentRequestDetails(
-                id=upcoming_appointment.id,
-                appointment_date=upcoming_appointment.appointment_date,
-                status=upcoming_appointment.status,
-                created_at=upcoming_appointment.created_at,
-                patient=PatientInfo.model_validate(upcoming_appointment.patient), # Correct for Pydantic v2+
-                doctor=Doctor.model_validate(upcoming_appointment.doctor), # <<< ADD THIS
-                start_time=upcoming_appointment.time_slot.start_time
-             )
-          print(f"Found upcoming appointment {response_data.id} for user {current_user.id}")
-          return response_data
-    else:
-        # This might indicate missing relationship data if the join succeeded but related objects are None
-        print(f"Warning: Upcoming appointment {upcoming_appointment.id if upcoming_appointment else 'N/A'} missing expected related data (patient, doctor, or timeslot info).")
-        return None
-    
 @router.get("/upcoming-confirmed", response_model=Optional[AppointmentRequestDetails])
 async def get_my_next_confirmed_appointment(
     db: db_dependency,

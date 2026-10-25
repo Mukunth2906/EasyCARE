@@ -110,8 +110,10 @@ async def get_video_join_token_for_appointment( # Renamed slightly for clarity
 
             print("Time validation passed.") # DEBUG
 
+    except HTTPException:
+        raise
     except ValueError as e:
-            # Error parsing the date/time string itself
+        # Error parsing the date/time string itself
         print(f"Error parsing appointment time/date for validation: {e}") # DEBUG
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not validate appointment time format.")
     except Exception as e: # Catch other potential errors like timezone issues

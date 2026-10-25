@@ -1,5 +1,6 @@
 # EasyCARE
 
+> **Note:** This repository is an educational course project and portfolio prototype for demonstration purposes. It is not HIPAA/GDPR certified and is not intended for production healthcare use or storing real patient medical data.
 
 EasyCARE is a full-featured web application that bridges the gap between patients and healthcare providers. It offers seamless appointment scheduling, personal health data tracking, user profile management, and in-app notifications—enabling proactive, coordinated long-term care.
 

@@ -28,7 +28,12 @@ router = APIRouter(
 )
 
 db_dependency = Annotated[Session, Depends(get_db)]
-SECRET_KEY = os.environ.get("SECRET_KEY", "default_secret_key_for_dev_only") # Provide a default for safety
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError(
+        "Critical Configuration Error: 'SECRET_KEY' environment variable is not set. "
+        "Please configure SECRET_KEY in your .env file or environment before starting the server."
+    )
 ALGORITHM = "HS256"  # HMAC SHA-256
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
